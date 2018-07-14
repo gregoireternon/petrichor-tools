@@ -56,7 +56,7 @@ public class ProcessFolder {
 
 
 
-        PhotoEntity[] photo = p.getObjectList(TABLE_NAME,PhotoEntity.class);
+        Collection<PhotoEntity> photo = p.getObjectList(TABLE_NAME,PhotoEntity.class);
 
 
 

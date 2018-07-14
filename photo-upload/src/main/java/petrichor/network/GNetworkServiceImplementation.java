@@ -18,7 +18,10 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.logging.Logger;
 
 /**
@@ -50,27 +53,39 @@ public class GNetworkServiceImplementation implements InvocationHandler {
         }
 
         IGMethod restMethod = GNetworkHelper.buildMethod(method);
-        Response response = restMethod.apply(()->{
-            WebTarget target = _client.target(new URI(_rootUrl+"/"+GNetworkHelper.getMethodPath(method,GNetworkHelper.getQueryParams(args))));
-            Invocation.Builder builder = target.request(MediaType.APPLICATION_JSON_TYPE);
-            builder.header("Authorization", _token.getValue());
-            return builder;
-        }, args);
-
+        int returnTypeIndex = -1;
         Class returnType = method.getReturnType();
         Class collectionType = null;
-        if(returnType==void.class) return null;
-        if(returnType.isArray()){
+        if(Collection.class.isAssignableFrom(returnType)){
             Annotation[][] annotations = method.getParameterAnnotations();
             int paramIndex=0;
             for (Annotation[] ann : annotations) {
                 if(ann.length>0 && ann[0].annotationType() == GCollectionType.class){
                     collectionType = (Class)args[paramIndex];
+                    returnTypeIndex = paramIndex;
                     break;
                 }
                 paramIndex++;
             }
         }
+        final Object[] mesArgs;
+        if(returnTypeIndex>=0){
+            List t = new ArrayList();
+            t.addAll(Arrays.asList(args));
+            t.remove(returnTypeIndex);
+            mesArgs = t.toArray();
+        }else{
+            mesArgs = args;
+        }
+
+        Response response = restMethod.apply(()->{
+            WebTarget target = _client.target(new URI(_rootUrl+"/"+GNetworkHelper.getMethodPath(method,GNetworkHelper.getQueryParams(mesArgs))));
+            Invocation.Builder builder = target.request(MediaType.APPLICATION_JSON_TYPE);
+            builder.header("Authorization", _token.getValue());
+            return builder;
+        }, args);
+
+        if(returnType==void.class) return null;
 
         return getResultFromResponse(response, returnType, collectionType);
 

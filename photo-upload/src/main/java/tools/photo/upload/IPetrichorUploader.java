@@ -10,6 +10,7 @@ import petrichor.network.GPath;
 import petrichor.network.IGEntity;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -37,7 +38,7 @@ public interface IPetrichorUploader {
 
     @GPath("/business/{}/json")
     @GMethod(GMethod.MethodName.GET)
-    <T> T[] getObjectList(String objectName, @GCollectionType Class<T> collectionType);
+    <T> Collection<T> getObjectList(String objectName, @GCollectionType Class<T> collectionType);
 
     @GPath("/business/{}/json")
     @GMethod(GMethod.MethodName.POST)
