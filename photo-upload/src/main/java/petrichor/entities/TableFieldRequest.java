@@ -1,7 +1,6 @@
 package petrichor.entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import petrichor.network.GNetworkHelper;
 import petrichor.network.IGEntity;
 
 /**
@@ -10,9 +9,10 @@ import petrichor.network.IGEntity;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class TableFieldRequest implements IGEntity {
 
-    public TableFieldRequest(String name, Class type){
+    public TableFieldRequest(String name, PetrichorType type){
         this.name = name;
-        this.type = GNetworkHelper.getTypeName(type);
+
+        this.type = type.getName();
     }
     public String name;
     public String type;

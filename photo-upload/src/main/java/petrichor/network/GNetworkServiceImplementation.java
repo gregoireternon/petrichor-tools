@@ -1,6 +1,9 @@
 package petrichor.network;
 
+import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.type.CollectionType;
+import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import petrichor.entities.Token;
 import petrichor.network.method.IGMethod;
 
@@ -10,9 +13,12 @@ import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
+import java.lang.reflect.Type;
 import java.net.URI;
+import java.util.Collection;
 import java.util.logging.Logger;
 
 /**
@@ -32,7 +38,7 @@ public class GNetworkServiceImplementation implements InvocationHandler {
         _rootUrl = rootUrl.endsWith("/")?rootUrl.substring(0,rootUrl.length()-1):rootUrl;
         _login = login;
         _password = password;
-        _client= ClientBuilder.newClient();
+        _client= ClientBuilder.newBuilder().register(MultiPartFeature.class).build();
     }
 
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
@@ -45,15 +51,28 @@ public class GNetworkServiceImplementation implements InvocationHandler {
 
         IGMethod restMethod = GNetworkHelper.buildMethod(method);
         Response response = restMethod.apply(()->{
-            WebTarget target = _client.target(new URI(_rootUrl+"/"+GNetworkHelper.getMethodPath(method)+"/"+GNetworkHelper.getQueryParams(args)));
+            WebTarget target = _client.target(new URI(_rootUrl+"/"+GNetworkHelper.getMethodPath(method,GNetworkHelper.getQueryParams(args))));
             Invocation.Builder builder = target.request(MediaType.APPLICATION_JSON_TYPE);
             builder.header("Authorization", _token.getValue());
             return builder;
         }, args);
 
         Class returnType = method.getReturnType();
+        Class collectionType = null;
         if(returnType==void.class) return null;
-        return getResultFromResponse(response, returnType);
+        if(returnType.isArray()){
+            Annotation[][] annotations = method.getParameterAnnotations();
+            int paramIndex=0;
+            for (Annotation[] ann : annotations) {
+                if(ann.length>0 && ann[0].annotationType() == GCollectionType.class){
+                    collectionType = (Class)args[paramIndex];
+                    break;
+                }
+                paramIndex++;
+            }
+        }
+
+        return getResultFromResponse(response, returnType, collectionType);
 
     }
 
@@ -73,12 +92,21 @@ public class GNetworkServiceImplementation implements InvocationHandler {
         _token = t;
     }
 
-    private <T> T getResultFromResponse(Response response, Class<T> targetType) throws IOException {
+    private <T> T getResultFromResponse(Response response, Class<T> targetType, Type genericReturnType) throws IOException {
         T resp = null;
+
+
         if(response.getStatusInfo().getFamily()==Response.Status.Family.SUCCESSFUL){
             String respS = response.readEntity(String.class);
             ObjectMapper om = new ObjectMapper();
-            resp = om.readValue(respS,targetType);
+
+            if(genericReturnType!=null){
+                JavaType jt = om.constructType(genericReturnType);
+                CollectionType ct = om.getTypeFactory().constructCollectionType((Class<? extends Collection>) targetType,jt);
+                resp = om.readValue(respS,ct);
+            }else{
+                resp = om.readValue(respS,targetType);
+            }
         }else{
             String msg = null;
             try {

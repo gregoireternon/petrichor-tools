@@ -14,9 +14,10 @@ public class AppTest
 {
     @Test
     public void GNetworkHelprTest() throws Exception {
-        Assert.assertEquals(GNetworkHelper.getMethodPath(TestInterface.class.getMethod("m1")),"baba");
-        Assert.assertEquals(GNetworkHelper.getMethodPath(TestInterface.class.getMethod("m2")),"baba");
-        Assert.assertEquals(GNetworkHelper.getMethodPath(TestInterface.class.getMethod("m3")),"baba");
+        Assert.assertEquals(GNetworkHelper.getMethodPath(TestInterface.class.getMethod("m1"),null),"baba");
+        Assert.assertEquals(GNetworkHelper.getMethodPath(TestInterface.class.getMethod("m2"),null),"baba");
+        Assert.assertEquals(GNetworkHelper.getMethodPath(TestInterface.class.getMethod("m3"),null),"baba");
+        Assert.assertEquals(GNetworkHelper.getMethodPath(TestInterface.class.getMethod("m4"),"a"),"baba/a/re");
     }
 
     private interface TestInterface{
@@ -29,5 +30,7 @@ public class AppTest
         @GPath("/baba/")
         void m3();
 
+        @GPath("/baba/{}/re")
+        void m4();
     }
 }

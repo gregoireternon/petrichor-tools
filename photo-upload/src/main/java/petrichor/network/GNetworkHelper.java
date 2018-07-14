@@ -2,10 +2,12 @@ package petrichor.network;
 
 import petrichor.network.method.*;
 
+import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Method;
 import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -13,13 +15,16 @@ import java.util.List;
  */
 public class GNetworkHelper {
 
-    public static String getMethodPath(Method method) throws Exception {
+    public static String getMethodPath(Method method, String queryParams) throws Exception {
         GPath path = method.getAnnotation(GPath.class);
         if(path!=null){
             String res = path.value();
             if(res.startsWith("/")) res = res.substring(1);
             if(res.endsWith("/")) res = res.substring(0,res.length()-1);
-            return res;
+            if(res.contains("{}")){
+                return res.replace("{}",queryParams);
+            }
+            return res + (queryParams==null?"":("/" + queryParams));
         }
         else{
             throw new Exception("Missing GPath annotation on method "+method.getName());
@@ -31,6 +36,9 @@ public class GNetworkHelper {
     public static String getQueryParams(Object[] args) {
         List<String> p = new ArrayList<String>();
         if(args==null) return null;
+        if(Arrays.asList(args).stream().anyMatch(a->a instanceof File)){
+            return "";
+        }
         for (Object o :args
                 ) {
             if(!(o instanceof IGEntity)){
@@ -51,6 +59,9 @@ public class GNetworkHelper {
 
 
     public static IGMethod buildMethod(Method method) throws Exception {
+        if(Arrays.asList(method.getParameterTypes()).contains(File.class)){
+            return new FileUploadMethod();
+        }
         GMethod m = method.getAnnotation(GMethod.class);
         GMethod.MethodName mn = m.value();
         switch (mn){
