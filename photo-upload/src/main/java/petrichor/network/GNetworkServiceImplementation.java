@@ -53,8 +53,10 @@ public class GNetworkServiceImplementation implements InvocationHandler {
         }
 
         IGMethod restMethod = GNetworkHelper.buildMethod(method);
-        int returnTypeIndex = -1;
         Class returnType = method.getReturnType();
+
+
+        int collectionReturnTypeIndex = -1;
         Class collectionType = null;
         if(Collection.class.isAssignableFrom(returnType)){
             Annotation[][] annotations = method.getParameterAnnotations();
@@ -62,17 +64,31 @@ public class GNetworkServiceImplementation implements InvocationHandler {
             for (Annotation[] ann : annotations) {
                 if(ann.length>0 && ann[0].annotationType() == GCollectionType.class){
                     collectionType = (Class)args[paramIndex];
-                    returnTypeIndex = paramIndex;
+                    collectionReturnTypeIndex = paramIndex;
                     break;
                 }
                 paramIndex++;
             }
+        }else{
+            Annotation[][] annotations = method.getParameterAnnotations();
+            int paramIndex=0;
+            Object arg = null;
+            for (Annotation[] ann : annotations) {
+                if(ann.length>0 && ann[0].annotationType() == GReturnType.class){
+                    arg = args[paramIndex];
+                    break;
+                }
+                paramIndex++;
+            }
+            if(arg!=null){
+                returnType = arg.getClass();
+            }
         }
         final Object[] mesArgs;
-        if(returnTypeIndex>=0){
+        if(collectionReturnTypeIndex>=0){
             List t = new ArrayList();
             t.addAll(Arrays.asList(args));
-            t.remove(returnTypeIndex);
+            t.remove(collectionReturnTypeIndex);
             mesArgs = t.toArray();
         }else{
             mesArgs = args;

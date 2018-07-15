@@ -1,18 +1,12 @@
 package tools.photo.upload;
 
 import petrichor.entities.FileEntity;
-import petrichor.entities.PhotoEntity;
 import petrichor.entities.TableEntity;
 import petrichor.entities.TableFieldRequest;
-import petrichor.network.GCollectionType;
-import petrichor.network.GMethod;
-import petrichor.network.GPath;
-import petrichor.network.IGEntity;
+import petrichor.network.*;
 
 import java.io.File;
 import java.util.Collection;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Created by Gregoire on 29/05/2018.
@@ -42,8 +36,12 @@ public interface IPetrichorUploader {
 
     @GPath("/business/{}/json")
     @GMethod(GMethod.MethodName.POST)
-    void addBusinessObject(IGEntity entity, String objectName);
+    <T extends IGEntity> T addBusinessObject(@GReturnType T entity, String objectName);
 
     @GPath("/file/upload")
     FileEntity upload(File file2upload);
+
+    @GPath("/business/{}/json")
+    @GMethod(GMethod.MethodName.PUT)
+    <T extends IGEntity> T updateBusinessObject(@GReturnType T photoEntity, String name);
 }

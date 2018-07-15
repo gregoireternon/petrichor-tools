@@ -49,10 +49,14 @@ public class ProcessFolder {
         photoEntity.hauteur=12;
         photoEntity.largeur=24;
 
-        p.addBusinessObject(photoEntity,te.name);
+        PhotoEntity res = p.addBusinessObject(photoEntity,te.name);
 
         File file2upload = new File(System.getProperty("user.dir")+"\\photo-upload\\src\\resources\\pdf-sample.pdf");
         FileEntity fe =  p.upload(file2upload);
+        photoEntity.fichier = fe;
+
+        res = p.updateBusinessObject(photoEntity,te.name);
+
 
 
 
