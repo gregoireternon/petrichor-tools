@@ -18,6 +18,7 @@ public class PhotoEntity implements IGEntity{
     public static final String FIELD_FICHIER = "Fichier";
     public static final String FIELD_LARGEUR = "Largeur";
     public static final String FIELD_HAUTEUR = "Hauteur";
+    public static final String FIELD_ID = "id";
 
 
     @JsonProperty(FIELD_NOM)
@@ -25,6 +26,9 @@ public class PhotoEntity implements IGEntity{
 
     @JsonProperty(FIELD_CHEMIN)
     public String chemin;
+
+    @JsonProperty(FIELD_ID)
+    public long id;
 
     @JsonProperty(FIELD_DATE_CREATION)
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
