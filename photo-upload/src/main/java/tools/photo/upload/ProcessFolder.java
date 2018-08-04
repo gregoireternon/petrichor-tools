@@ -42,16 +42,16 @@ public class ProcessFolder {
             te = p.addField(tfr, te.name);
         }
 
+        File file2upload = new File(System.getProperty("user.dir")+"\\photo-upload\\src\\resources\\pdf-sample.pdf");
         PhotoEntity photoEntity = new PhotoEntity();
         photoEntity.fileName="Photo test 1";
-        photoEntity.chemin="C:\\totro\\";
+        photoEntity.chemin=file2upload.getParent();
         photoEntity.dateCreation= new GregorianCalendar().getTime();
         photoEntity.hauteur=12;
         photoEntity.largeur=24;
 
         PhotoEntity res = p.addBusinessObject(photoEntity,te.name);
 
-        File file2upload = new File(System.getProperty("user.dir")+"\\photo-upload\\src\\resources\\pdf-sample.pdf");
         FileEntity fe =  p.upload(file2upload);
         res.fichier = fe;
         res.fichier.filename = file2upload.getName();
